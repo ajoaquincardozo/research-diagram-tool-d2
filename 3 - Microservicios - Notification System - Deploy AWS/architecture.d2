@@ -1,0 +1,219 @@
+vars: {
+  d2-config: {
+    theme-id: 200
+  }
+}
+
+direction: right
+
+title: Arquitectura de Microservicios - Sistema de Suscripciones {
+  near: top-center
+  shape: text
+  style: {
+    font-size: 22
+    bold: true
+  }
+}
+
+# Usuario
+user: Usuario {
+  shape: person
+  style.multiple: true
+}
+
+# API Gateway
+apigw: API Gateway {
+  icon: https://icons.terrastruct.com/aws%2FNetworking%20&%20Content%20Delivery%2FAmazon-API-Gateway_light-bg.svg
+}
+
+# Authentication (ECS - primer servicio)
+auth: Authentication\n(ECS/Fargate) {
+  icon: https://icons.terrastruct.com/aws%2FCompute%2FAmazon-Elastic-Container-Service_light-bg.svg
+  style: {
+    fill: "#4A148C"
+    stroke: "#7B1FA2"
+    stroke-width: 2
+  }
+}
+
+# Servicios Core en ECS/Fargate (24/7)
+subscriptions: Subscriptions\n(ECS/Fargate) {
+  icon: https://icons.terrastruct.com/aws%2FCompute%2FAmazon-Elastic-Container-Service_light-bg.svg
+  style: {
+    fill: "#1A237E"
+    stroke: "#3949AB"
+    stroke-width: 2
+  }
+}
+
+payments: Payments\n(ECS/Fargate) {
+  icon: https://icons.terrastruct.com/aws%2FCompute%2FAmazon-Elastic-Container-Service_light-bg.svg
+  style: {
+    fill: "#880E4F"
+    stroke: "#C2185B"
+    stroke-width: 2
+  }
+}
+
+# Servicios Event-Driven en Lambda
+billings: Billings\n(Lambda) {
+  icon: https://icons.terrastruct.com/aws%2FCompute%2FAWS-Lambda_light-bg.svg
+  style: {
+    fill: "#1B5E20"
+    stroke: "#388E3C"
+    stroke-width: 2
+  }
+}
+
+notifications: Notifications\n(Lambda) {
+  icon: https://icons.terrastruct.com/aws%2FCompute%2FAWS-Lambda_light-bg.svg
+  style: {
+    fill: "#F57F17"
+    stroke: "#FBC02D"
+    stroke-width: 2
+  }
+}
+
+# Message Broker
+broker: Message Broker\n(SQS/SNS/EventBridge) {
+  icon: https://icons.terrastruct.com/aws%2FApplication%20Integration%2FAmazon-Simple-Queue-Service-SQS_light-bg.svg
+  style: {
+    fill: "#AD1457"
+    stroke: "#E91E63"
+    stroke-width: 2
+  }
+}
+
+# Bases de datos
+db_auth: DB Auth {
+  icon: https://icons.terrastruct.com/aws%2FDatabase%2FAmazon-RDS_light-bg.svg
+}
+
+db_sub: DB Subscriptions {
+  icon: https://icons.terrastruct.com/aws%2FDatabase%2FAmazon-RDS_light-bg.svg
+}
+
+db_pay: DB Payments {
+  icon: https://icons.terrastruct.com/aws%2FDatabase%2FAmazon-RDS_light-bg.svg
+}
+
+db_bill: DB Billings {
+  icon: https://icons.terrastruct.com/aws%2FDatabase%2FAmazon-RDS_light-bg.svg
+}
+
+# Flujo principal: Usuario -> API Gateway -> Authentication
+user -> apigw: HTTPS
+apigw -> auth: "HTTP\n(validar token)" {
+  style.stroke: "#42A5F5"
+  style.stroke-width: 3
+}
+
+# Authentication valida y rutea a servicios
+auth -> subscriptions: "HTTP\n(token válido)" {
+  style.stroke: "#42A5F5"
+  style.stroke-width: 2
+}
+
+auth -> payments: "HTTP\n(token válido)" {
+  style.stroke: "#42A5F5"
+  style.stroke-width: 2
+}
+
+# Subscriptions -> Payments (HTTP síncrono)
+subscriptions -> payments: "HTTP\n(procesar pago)" {
+  style.stroke: "#42A5F5"
+  style.stroke-width: 2
+}
+
+# Comunicaciones asíncronas vía Message Broker
+subscriptions -> broker: "Eventos:\nsubscription.created\nsubscription.cancelled\nsubscription.upgraded" {
+  style.stroke: "#BA68C8"
+  style.stroke-width: 2
+  style.stroke-dash: 3
+}
+
+payments -> broker: "Eventos:\npayment.completed\npayment.failed" {
+  style.stroke: "#BA68C8"
+  style.stroke-width: 2
+  style.stroke-dash: 3
+}
+
+broker -> billings: "Escucha:\npayment.completed\nsubscription.*" {
+  style.stroke: "#BA68C8"
+  style.stroke-width: 2
+  style.stroke-dash: 3
+}
+
+billings -> broker: "Evento:\ninvoice.generated" {
+  style.stroke: "#BA68C8"
+  style.stroke-width: 2
+  style.stroke-dash: 3
+}
+
+broker -> notifications: "Escucha:\ntodos los eventos" {
+  style.stroke: "#BA68C8"
+  style.stroke-width: 2
+  style.stroke-dash: 3
+}
+
+# Conexiones a bases de datos
+auth -> db_auth: SQL
+subscriptions -> db_sub: SQL
+payments -> db_pay: SQL
+billings -> db_bill: SQL
+
+# Leyenda mejorada
+legend: Leyenda {
+  near: bottom-right
+  shape: rectangle
+  style: {
+    fill: "#1a1a1a"
+    stroke: "#888"
+  }
+
+  ecs_label: "🔴 ECS/Fargate (24/7, alta disponibilidad)" {
+    shape: text
+    style.font-color: "#E91E63"
+  }
+
+  lambda_label: "🟢 Lambda (event-driven, bajo costo)" {
+    shape: text
+    style.font-color: "#66BB6A"
+  }
+
+  http: "━━ HTTP (Sincrónico)" {
+    shape: text
+    style.font-color: "#42A5F5"
+  }
+
+  async: "╍╍ Message Broker (Asincrónico)" {
+    shape: text
+    style.font-color: "#BA68C8"
+  }
+}
+
+# Notas arquitectónicas
+notes: |md
+  **Decisiones de Arquitectura:**
+
+  **ECS/Fargate (Críticos 24/7):**
+  • Authentication - Gateway de seguridad
+  • Subscriptions - Core de negocio
+  • Payments - Procesa dinero, cero tolerancia
+
+  **Lambda (Event-Driven):**
+  • Billings - Asincrónico, tolerante a latencia
+  • Notifications - Totalmente desacoplado
+
+  **Beneficios:**
+  • Costo optimizado (~$120/mes)
+  • Sin cold starts en servicios críticos
+  • Mejor debugging y control
+  • Escalabilidad automática
+| {
+  near: bottom-left
+  shape: text
+  style: {
+    font-size: 11
+  }
+}
