@@ -1,0 +1,44 @@
+direction: right
+
+title: Arquitectura Monolítica {
+  near: top-center
+  shape: text
+  style: {
+    font-size: 24
+    bold: true
+  }
+}
+
+# Usuario
+user: Usuario {
+  shape: person
+}
+
+# Aplicación Monolítica
+app: Aplicación Monolítica {
+  shape: rectangle
+  style: {
+    fill: "#e3f2fd"
+    stroke: "#1976d2"
+    stroke-width: 3
+  }
+}
+
+# Base de Datos
+db: Base de Datos {
+  shape: cylinder
+  style: {
+    fill: "#fff9c4"
+    stroke: "#f57f17"
+  }
+}
+
+# Almacenamiento de Archivos
+storage: Almacenamiento de Archivos {
+  shape: stored_data
+}
+
+# Conexiones
+user -> app: HTTP/HTTPS
+app -> db: SQL
+app -> storage: Archivos
