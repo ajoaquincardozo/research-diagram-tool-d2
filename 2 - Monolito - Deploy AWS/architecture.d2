@@ -1,0 +1,51 @@
+direction: right
+
+title: Monolito en AWS {
+  near: top-center
+  shape: text
+  style: {
+    font-size: 24
+    bold: true
+  }
+}
+
+# Usuario
+user: Usuario {
+  shape: person
+  style.multiple: true
+}
+
+# Application Load Balancer
+alb: Application Load Balancer {
+  icon: https://icons.terrastruct.com/aws%2FNetworking%20&%20Content%20Delivery%2FElastic-Load-Balancing_light-bg.svg
+}
+
+# EC2 con la aplicación monolítica
+ec2: EC2 Instance {
+  icon: https://icons.terrastruct.com/aws%2FCompute%2F_Instance%2FAmazon-EC2_Instance_light-bg.svg
+
+  app: Aplicación Monolítica {
+    shape: rectangle
+    style: {
+      fill: "#e3f2fd"
+      stroke: "#1976d2"
+      stroke-width: 2
+    }
+  }
+}
+
+# RDS - Base de Datos
+rds: Amazon RDS {
+  icon: https://icons.terrastruct.com/aws%2FDatabase%2FAmazon-RDS_light-bg.svg
+}
+
+# S3 - Almacenamiento
+s3: Amazon S3 {
+  icon: https://icons.terrastruct.com/aws%2FStorage%2FAmazon-Simple-Storage-Service-S3.svg
+}
+
+# Conexiones
+user -> alb: HTTPS
+alb -> ec2.app: HTTP
+ec2.app -> rds: SQL
+ec2.app -> s3: Archivos
